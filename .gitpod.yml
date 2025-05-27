@@ -1,0 +1,10 @@
+tasks:
+    - command: pip install -r requirements.txt; pip install pre-commit
+    - command: pre-commit install
+
+vscode:
+    extensions:
+        - ms-toolsai.jupyter
+        - ms-python.python
+        - amazonwebservices.amazon-q-vscode
+        - charliermarsh.ruff

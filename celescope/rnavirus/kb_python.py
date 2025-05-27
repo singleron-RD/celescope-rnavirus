@@ -8,7 +8,7 @@ from celescope.tools import utils
 from celescope.tools.step import Step, s_common
 import subprocess
 import sys
-from celescope.tools.matrix import CountMatrix
+from celescope.tools import parse_chemistry
 
 
 def add_underscore(barcodes_file, outfile):
@@ -40,6 +40,10 @@ def remove_underscore(barcodes_file, outfile):
 class Kb_python(Step):
     def __init__(self, args, display_title=None):
         Step.__init__(self, args, display_title=display_title)
+        self.chemistry = self.get_slot_key(slot='metrics', step_name='sample', key='Chemistry')
+        self.pattern_dict, _bc = parse_chemistry.get_pattern_dict_and_bc(
+            self.chemistry)
+        
 
         self.kb_whitelist_file = f"{self.outdir}/kb_whitelist.txt"
         remove_underscore(args.barcodes_file, self.kb_whitelist_file)
@@ -61,10 +65,17 @@ class Kb_python(Step):
             for bc in bcs:
                 f.write(bc + "\n")
 
+    def get_kb_pattern_args(self):
+        cb_pos = ",".join([f"0,{x.start},{x.stop}" for x in self.pattern_dict["C"]])
+        umi_pos = f"0,{self.pattern_dict['U'][0].start},{self.pattern_dict['U'][0].stop}"
+        return ":".join([cb_pos,umi_pos,"1,0,0"])
+
+
     def run_kb(self):
+        pattern_args = self.get_kb_pattern_args()
         cmd = (
             f"kb count --aa -i {self.args.kbDir}/index.idx -g {self.args.kbDir}/palmdb_clustered_t2g.txt "
-            f"-x 0,0,9,0,25,34,0,50,59:0,60,72:1,0,0 "
+            f"-x {pattern_args} "
             f"-w {self.kb_whitelist_file} "
             f"-t {self.args.thread} "
             f"-o {self.outdir}  --overwrite "

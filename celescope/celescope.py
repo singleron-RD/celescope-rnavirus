@@ -24,7 +24,7 @@ class ArgFormatter(
 def main():
     """celescope cli"""
     parser = argparse.ArgumentParser(
-        description="celescope for mobiuscope", formatter_class=ArgFormatter
+        description="celescope for rna virus", formatter_class=ArgFormatter
     )
     parser.add_argument("-v", "--version", action="version", version=__VERSION__)
     subparsers = parser.add_subparsers(dest="subparser_assay")

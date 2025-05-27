@@ -55,7 +55,7 @@ class Step:
         display_title controls the section title in HTML report
         force thread <=20
         """
-        sys.stderr.write(f"version: {__version__} ")
+        sys.stderr.write(f"CeleScope version: {__version__} ")
         sys.stderr.write(f"Args: {args}\n")
         self.args = args
         self.outdir = args.outdir
@@ -71,9 +71,7 @@ class Step:
         # metrics index
         self.metric_index = 0
 
-        # important! make outdir before path_dict because path_dict use relative path.
         utils.check_mkdir(self.outdir)
-        utils.check_mkdir(self.outs_dir)
 
         # set
         class_name = self.__class__.__name__
@@ -97,6 +95,8 @@ class Step:
         for slot, path in self._path_dict.items():
             if not os.path.exists(path):
                 self.__content_dict[slot] = {}
+                if slot == "data":
+                    self.__content_dict[slot]["parameters"] = {}
             else:
                 with open(path) as f:
                     try:
@@ -287,6 +287,8 @@ class Step:
         return table_dict
 
     def _move_files(self):
+        if self.outs:
+            utils.check_mkdir(self.outs_dir)
         for f in self.outs:
             cmd = ""
             if not os.path.exists(f):
@@ -300,9 +302,23 @@ class Step:
             subprocess.check_call(cmd, shell=True)
 
     @utils.add_log
+    def _add_parameters(self):
+        for key, value in vars(self.args).items():
+            if key not in {
+                "func",
+                "thread",
+                "outdir",
+                "sample",
+                "subparser_assay",
+                "debug",
+            }:
+                self.__content_dict["data"]["parameters"][key] = value
+
+    @utils.add_log
     def _clean_up(self):
         self._add_content_data()
         self._add_content_metric()
+        self._add_parameters()
         self._write_stat()
         self._dump_content()
         self._render_html()

@@ -1,0 +1,43 @@
+{% include "html/utils/start.html"%}
+
+    {% if demultiplexing_summary is defined %}
+    {% set step_summary = demultiplexing_summary %}
+    {% include "html/utils/step.html"%}
+    {% endif %}
+
+    {% if mapping_summary is defined %}
+    {% set step_summary = mapping_summary %}
+    {% include "html/utils/step.html" %}
+    {% endif %}
+
+    {% if cells_summary is defined%}
+    {% set step_summary = cells_summary %}
+    {% include "html/rna/count.html" %}
+    {% endif %}
+
+    {% if analysis_summary is defined %}
+    {% set step_summary = analysis_summary %}
+    {% include "html/rna/analysis.html"%}
+    {% endif %}
+
+    {% if conversion_summary is defined %}
+    {% set step_summary = conversion_summary %}
+    {% include "html/dynaseq/conversion.html"%}
+    {% endif %}
+
+    {% if substitution_summary is defined %}
+    {% set step_summary = substitution_summary %}
+    {% include "html/dynaseq/substitution.html"%}
+    {% endif %}
+
+    {% if replacement_summary is defined %}
+    {% set step_summary = replacement_summary %}
+    {% include "html/dynaseq/replacement.html"%}
+    {% endif %}
+
+    {% if estimate_summary is defined %}
+    {% set step_summary = estimate_summary %}
+    {% include "html/dynaseq/replacement.html"%}
+    {% endif %}
+      
+{% include "html/utils/end.html"%}

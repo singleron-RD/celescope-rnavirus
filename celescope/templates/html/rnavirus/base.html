@@ -1,0 +1,10 @@
+{% include "html/utils/start.html"%}
+
+    {% if kb_python_summary is defined %}
+    {% set step_summary = kb_python_summary %}
+    {% include "html/utils/step.html"%}
+    {% endif %}
+
+
+
+{% include "html/utils/end.html"%}

@@ -46,8 +46,7 @@ def get_opts_sample(parser, sub_program):
         parser.add_argument("--fq1", help="read1 fq file")
     parser.add_argument(
         "--chemistry",
-        default="mobiu-1",
-        choices=["mobiu-1", "mobiu-2", "mobiu-3"],
+        default="auto",
         help="chemistry version",
     )
     return parser

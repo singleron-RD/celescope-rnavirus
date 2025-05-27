@@ -1,7 +1,6 @@
 import os
 import shutil
 
-import numpy as np
 import pandas as pd
 import scipy
 from celescope.tools import utils
@@ -40,10 +39,10 @@ def remove_underscore(barcodes_file, outfile):
 class Kb_python(Step):
     def __init__(self, args, display_title=None):
         Step.__init__(self, args, display_title=display_title)
-        self.chemistry = self.get_slot_key(slot='metrics', step_name='sample', key='Chemistry')
-        self.pattern_dict, _bc = parse_chemistry.get_pattern_dict_and_bc(
-            self.chemistry)
-        
+        self.chemistry = self.get_slot_key(
+            slot="metrics", step_name="sample", key="Chemistry"
+        )
+        self.pattern_dict, _bc = parse_chemistry.get_pattern_dict_and_bc(self.chemistry)
 
         self.kb_whitelist_file = f"{self.outdir}/kb_whitelist.txt"
         remove_underscore(args.barcodes_file, self.kb_whitelist_file)
@@ -67,9 +66,10 @@ class Kb_python(Step):
 
     def get_kb_pattern_args(self):
         cb_pos = ",".join([f"0,{x.start},{x.stop}" for x in self.pattern_dict["C"]])
-        umi_pos = f"0,{self.pattern_dict['U'][0].start},{self.pattern_dict['U'][0].stop}"
-        return ":".join([cb_pos,umi_pos,"1,0,0"])
-
+        umi_pos = (
+            f"0,{self.pattern_dict['U'][0].start},{self.pattern_dict['U'][0].stop}"
+        )
+        return ":".join([cb_pos, umi_pos, "1,0,0"])
 
     def run_kb(self):
         pattern_args = self.get_kb_pattern_args()
@@ -84,7 +84,6 @@ class Kb_python(Step):
         sys.stderr.write(cmd + "\n")
         subprocess.check_call(cmd, shell=True)
 
-
     @utils.add_log
     def get_filtered_matrix(self):
         os.makedirs(self.filtered, exist_ok=True)
@@ -98,7 +97,7 @@ class Kb_python(Step):
             features_file,
         )
         features_df = pd.read_csv(features_file, sep="\t", header=None)
-        features_df[1] =  features_df[0]
+        features_df[1] = features_df[0]
         features_df[2] = "RNA Virus"
         features_df.to_csv(features_file, sep="\t", header=False, index=False)
         matrix = scipy.io.mmread(f"{self.outdir}/counts_unfiltered/cells_x_genes.mtx")
@@ -111,9 +110,6 @@ class Kb_python(Step):
 
     @utils.add_log
     def run(self):
-        if not self.args.kbDir:
-            sys.stderr.write("--kbDir not provided. Skip kb_python")
-            return
         self.run_kb()
         self.get_filtered_matrix()
 
@@ -127,8 +123,8 @@ def kb_python(args):
 def get_opts_kb_python(parser, sub_program):
     parser.add_argument(
         "--kbDir",
-        help="kb reference directory path. Must contain index.idx and palmdb_clustered_t2g.txt.",
-        required=True
+        help="kb reference directory path. Must contain index.idx, palmdb_clustered_t2g.txt and ID_to_taxonomy_mapping.csv.",
+        required=True,
     )
     parser.add_argument("--barcodes_file", required=True)
     if sub_program:

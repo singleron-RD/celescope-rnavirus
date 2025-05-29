@@ -7,7 +7,7 @@ from celescope.tools import utils
 from celescope.tools.step import Step, s_common
 import subprocess
 import sys
-from celescope.tools import parse_chemistry
+from celescope.tools import parse_chemistry, matrix
 
 
 def add_underscore(barcodes_file, outfile):
@@ -47,9 +47,22 @@ class Kb_python(Step):
         self.kb_whitelist_file = f"{self.outdir}/kb_whitelist.txt"
         remove_underscore(args.barcodes_file, self.kb_whitelist_file)
 
+        # mapping
+        self.mapping_df = pd.read_csv(
+            f"{args.kbDir}/ID_to_taxonomy_mapping.csv", na_values=["."]
+        )
+        self.rep_df = self.mapping_df[
+            self.mapping_df["ID"] == self.mapping_df["rep_ID"]
+        ]
+        self.rep_df = self.rep_df.drop("ID", axis=1)
+        self.rep_df = self.rep_df.dropna(
+            subset=["phylum", "class", "order", "family", "genus", "species"], how="all"
+        )
+
         # outfile
         self.filtered = f"{self.outdir}/virus.filtered"
-        self.outs = [self.filtered]
+        self.positive_cell_csv = f"{self.outdir}/positive_cell.csv"
+        self.outs = [self.filtered, self.positive_cell_csv]
 
     def generate_kb_whitelist(self, bc_list, kb_whitelist_file):
         bc_segments = [open(bc_file, "r").read().splitlines() for bc_file in bc_list]
@@ -109,9 +122,30 @@ class Kb_python(Step):
         subprocess.check_call(cmd, shell=True)
 
     @utils.add_log
+    def get_positive_cell_count(self):
+        filtered = matrix.CountMatrix.from_matrix_dir(self.filtered)
+        df = filtered.to_df(gene_id=True)
+        sum_df = df.sum(axis=1)
+        sum_df = sum_df[sum_df > 0]
+        sum_df.name = "positive_cell"
+        sum_df = sum_df.to_frame()
+        sum_df["positive_cell"] = sum_df["positive_cell"].astype(int)
+
+        merge_df = sum_df.merge(
+            self.rep_df, left_index=True, right_on="rep_ID", how="inner"
+        )
+        merge_df.to_csv(self.positive_cell_csv)
+
+        table_dict = self.get_table_dict(
+            title="Positive Cell Count", table_id="rnavirus", df_table=merge_df
+        )
+        self.add_data(table_dict=table_dict)
+
+    @utils.add_log
     def run(self):
         self.run_kb()
         self.get_filtered_matrix()
+        self.get_positive_cell_count()
 
 
 @utils.add_log

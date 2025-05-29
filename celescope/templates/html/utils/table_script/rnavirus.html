@@ -1,0 +1,11 @@
+<script>
+    $(document).ready(function () {
+            var table = $('#rnavirus').DataTable({
+                "scrollX": true,
+                "autoWidth": false,
+                dom: 'Bfrtip',
+                buttons: ['excel']
+            });
+            table.columns(0).order('desc').draw();
+    });
+</script>

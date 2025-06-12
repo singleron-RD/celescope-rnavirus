@@ -124,12 +124,13 @@ class Kb_python(Step):
     @utils.add_log
     def get_positive_cell_count(self):
         filtered = matrix.CountMatrix.from_matrix_dir(self.filtered)
-        df = filtered.to_df(gene_id=True)
-        sum_df = df.sum(axis=1)
-        sum_df = sum_df[sum_df > 0]
-        sum_df.name = "positive_cell"
-        sum_df = sum_df.to_frame()
-        sum_df["positive_cell"] = sum_df["positive_cell"].astype(int)
+        barcode_count = filtered.get_feature_n_barcodes_above_zero()
+        barcode_count = {
+            key: value for key, value in barcode_count.items() if value > 0
+        }
+        sum_df = pd.DataFrame.from_dict(
+            barcode_count, orient="index", columns=["positive_cell"]
+        )
 
         merge_df = sum_df.merge(
             self.rep_df, left_index=True, right_on="rep_ID", how="inner"

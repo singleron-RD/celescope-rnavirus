@@ -289,3 +289,18 @@ class CountMatrix:
         return pd.DataFrame.sparse.from_spmatrix(
             self.__matrix, index=index, columns=self.__barcodes
         )
+
+    def get_feature_n_barcodes_above_zero(self):
+        """
+        Returns:
+            dict {feature_id: number of barcodes with expression > 0}
+        """
+        mtx_csr = self.__matrix.tocsr()  # 行稀疏格式便于按行统计
+        gene_ids = self.__features.gene_id
+        result = {}
+
+        for i, gene_id in enumerate(gene_ids):
+            count = mtx_csr[i].count_nonzero()
+            result[gene_id] = count
+
+        return result

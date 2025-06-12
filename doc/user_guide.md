@@ -43,6 +43,7 @@ Under your working directory, write a shell script `run.sh` as
 multi_rnavirus \
  --mapfile mapfile \
  --kbDir /genome/kb/human_mask_ref \
+ --barcodes_file /match_dir/outs/filtered/barcodes.tsv.gz \
  --mod shell
 ```
 
